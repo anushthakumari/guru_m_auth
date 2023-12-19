@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
 	password: String,
 	teacher_type: String,
 	profile_picture: String,
+	email: String,
 });
 
 const User = mongoose.model("User", userSchema);
@@ -56,12 +57,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Register user
 app.post("/register", upload.single("profile_picture"), async (req, res) => {
 	try {
-		const { username, password, teacher_type } = req.body;
+		const { username, password, teacher_type, email } = req.body;
 
 		// Check if the username already exists
-		const existingUser = await User.findOne({ username });
+		const existingUser = await User.findOne({ email });
 		if (existingUser) {
-			return res.status(409).json({ message: "Username already exists" });
+			return res.status(409).json({ message: "email already exists" });
 		}
 
 		// Hash the password
@@ -72,6 +73,7 @@ app.post("/register", upload.single("profile_picture"), async (req, res) => {
 			username,
 			password: hashedPassword,
 			teacher_type,
+			email,
 			profile_picture: req.file.filename,
 		});
 		const u = await newUser.save();
@@ -86,16 +88,16 @@ app.post("/register", upload.single("profile_picture"), async (req, res) => {
 // Login user
 app.post("/login", async (req, res) => {
 	try {
-		const { username, password } = req.body;
+		const { email, password } = req.body;
 
 		// Find the user by username
-		const user = await User.findOne({ username });
+		const user = await User.findOne({ email });
 
 		// Check if the user exists and the password is correct
 		if (user && (await bcrypt.compare(password, user.password))) {
-			return res.json({ message: "Login successful" });
+			return res.json(user);
 		} else {
-			return res.status(401).json({ message: "Invalid username or password" });
+			return res.status(401).json({ message: "invalid creds!" });
 		}
 	} catch (error) {
 		console.error(error);

@@ -55,9 +55,10 @@ const upload = multer({ storage: storage });
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Register user
-app.post("/register", upload.single("profile_picture"), async (req, res) => {
+app.post("/register", async (req, res) => {
 	try {
-		const { username, password, teacher_type, email } = req.body;
+		const { username, password, teacher_type, email, profile_picture } =
+			req.body;
 
 		// Check if the username already exists
 		const existingUser = await User.findOne({ email });
@@ -74,7 +75,7 @@ app.post("/register", upload.single("profile_picture"), async (req, res) => {
 			password: hashedPassword,
 			teacher_type,
 			email,
-			profile_picture: req.file.filename,
+			profile_picture: profile_picture,
 		});
 		const u = await newUser.save();
 

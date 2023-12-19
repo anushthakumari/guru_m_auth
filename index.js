@@ -27,7 +27,13 @@ const userSchema = new mongoose.Schema({
 	profile_picture: String,
 	email: String,
 	doc_url: String,
+	aadhar_card_url: String,
+	mark_sheet_url: String,
+	cert_url: String,
 	is_verified: Boolean,
+	education: String,
+	major: String,
+	graduation_year: String,
 });
 
 const User = mongoose.model("User", userSchema);
@@ -109,7 +115,18 @@ app.post("/login", async (req, res) => {
 });
 
 app.put("/edit", async (req, res) => {
-	const { username, email, user_id, doc_url, is_verified } = req.body;
+	const {
+		username,
+		email,
+		user_id,
+		aadhar_card_url,
+		cert_url,
+		mark_sheet_url,
+		is_verified,
+		education,
+		major,
+		graduation_year,
+	} = req.body;
 
 	await User.findByIdAndUpdate(
 		{
@@ -118,8 +135,13 @@ app.put("/edit", async (req, res) => {
 		{
 			username,
 			email,
-			doc_url,
+			aadhar_card_url,
+			mark_sheet_url,
+			cert_url,
 			is_verified,
+			education,
+			major,
+			graduation_year,
 		}
 	);
 

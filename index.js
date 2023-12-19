@@ -26,6 +26,8 @@ const userSchema = new mongoose.Schema({
 	teacher_type: String,
 	profile_picture: String,
 	email: String,
+	doc_url: String,
+	is_verified: Boolean,
 });
 
 const User = mongoose.model("User", userSchema);
@@ -104,6 +106,26 @@ app.post("/login", async (req, res) => {
 		console.error(error);
 		res.status(500).json({ message: "Internal Server Error" });
 	}
+});
+
+app.put("/edit", async (req, res) => {
+	const { username, email, user_id, doc_url, is_verified } = req.body;
+
+	await User.findByIdAndUpdate(
+		{
+			_id: new mongoose.Types.ObjectId(user_id),
+		},
+		{
+			username,
+			email,
+			doc_url,
+			is_verified,
+		}
+	);
+
+	const d = await User.findById(user_id);
+
+	res.json(d);
 });
 
 // // Upload profile picture

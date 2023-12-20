@@ -45,9 +45,33 @@ const courseSchema = new mongoose.Schema({
 	username: String,
 	title: String,
 	is_published: Boolean,
+	createdAt: { type: Date, default: Date.now },
 });
 
 const Courses = mongoose.model("courses", courseSchema);
+
+const assetSchema = new mongoose.Schema({
+	type: String,
+	filename: String,
+	file_url: { type: String, required: true },
+	user_name: String,
+	desc: String,
+	element_type: { type: String, required: true },
+	title: String,
+	user_id: String,
+	is_private: Boolean,
+	createdAt: { type: Date, default: Date.now },
+});
+
+const Asset = mongoose.model("asset", assetSchema);
+
+const creditSchema = new mongoose.Schema({
+	user_id: String,
+	credit_points: Number,
+	createdAt: { type: Date, default: Date.now },
+});
+
+const CreditPoints = mongoose.model("credit_points", creditSchema);
 
 app.use(cors());
 
@@ -232,6 +256,63 @@ app.put("/courses/:course_id/publish", async (req, res, next) => {
 	const course = await Courses.findById(course_id);
 
 	res.send(course);
+});
+
+app.get("/user/:user_id/analytics", async (req, res, next) => {
+	const { user_id } = req.params;
+
+	const course_count = await Courses.countDocuments({ user_id });
+	const resource_count = await Asset.countDocuments({ user_id });
+	const credit_points_d = await CreditPoints.findOne({ user_id });
+
+	const courses = await Courses.find({ user_id });
+
+	const courses_stats = [];
+
+	for (const course of courses) {
+		courses_stats.push({
+			title: course.title,
+			chart: {
+				labels: ["M", "T", "W", "T", "F", "S", "S"],
+				datasets: {
+					label: "Student Engagement",
+					data: [0, 0, 0, 0, 0, 0, 0],
+				},
+			},
+		});
+	}
+
+	res.json({
+		course_count,
+		resource_count,
+		credit_points: credit_points_d?.credit_points || 0,
+		student_count: 0,
+		courses_stats,
+	});
+});
+
+app.get("/user/:user_id/dash", async (req, res, next) => {
+	const { user_id } = req.params;
+
+	const credit_points_d = await CreditPoints.findOne({ user_id });
+	const courses = await Courses.find({ user_id, is_published: true });
+	const resources = await Asset.find({ user_id });
+
+	const credit_points = credit_points_d?.credit_points || 0;
+
+	const stats = {
+		student_count: 0,
+		credit_points,
+		avg_eng: "0%",
+		avg_rating: 0,
+		badge: "none",
+	};
+
+	res.send({
+		courses,
+		resources,
+		stats,
+	});
 });
 
 app.listen(port, () => {

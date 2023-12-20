@@ -176,6 +176,15 @@ app.post("/courses", async (req, res, next) => {
 	res.send(u);
 });
 
+//get course by user id
+app.get("/user/:user_id/courses", async (req, res, next) => {
+	const { user_id } = req.params;
+
+	const d = await Courses.find({ user_id });
+
+	res.send(d);
+});
+
 //get courses
 app.get("/courses", async (req, res, next) => {
 	const d = await Courses.find();

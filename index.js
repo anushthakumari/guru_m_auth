@@ -291,6 +291,37 @@ app.get("/user/:user_id/analytics", async (req, res, next) => {
 	});
 });
 
+app.get("/admin/analytics", async (req, res, next) => {
+	const course_count = await Courses.countDocuments();
+	const resource_count = await Asset.countDocuments();
+	const credit_points_d = await CreditPoints.findOne();
+
+	const courses = await Courses.find();
+
+	const courses_stats = [];
+
+	for (const course of courses) {
+		courses_stats.push({
+			title: course.title,
+			chart: {
+				labels: ["M", "T", "W", "T", "F", "S", "S"],
+				datasets: {
+					label: "Student Engagement",
+					data: [0, 0, 0, 0, 0, 0, 0],
+				},
+			},
+		});
+	}
+
+	res.json({
+		course_count,
+		resource_count,
+		credit_points: credit_points_d?.credit_points || 0,
+		student_count: 0,
+		courses_stats,
+	});
+});
+
 app.get("/user/:user_id/dash", async (req, res, next) => {
 	const { user_id } = req.params;
 
@@ -313,6 +344,33 @@ app.get("/user/:user_id/dash", async (req, res, next) => {
 		resources,
 		stats,
 	});
+});
+
+app.get("/leaderboard", async (req, res, next) => {
+	const usersOrdered = await Courses.aggregate([
+		{
+			$addFields: {
+				chaptersCount: { $size: "$chapters" },
+			},
+		},
+		{
+			$sort: { chaptersCount: -1 },
+		},
+		{
+			$project: {
+				_id: 0,
+				user_id: 1,
+				username: 1,
+				chaptersCount: 1,
+				chapters: 1,
+				title: 1,
+				is_published: 1,
+				createdAt: 1,
+			},
+		},
+	]);
+
+	res.send(usersOrdered);
 });
 
 app.listen(port, () => {

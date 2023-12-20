@@ -38,6 +38,15 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// Define course schema
+const courseSchema = new mongoose.Schema({
+	user_id: mongoose.Types.ObjectId,
+	chapters: Array,
+	username: String,
+});
+
+const Courses = mongoose.model("courses", courseSchema);
+
 app.use(cors());
 
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -150,6 +159,18 @@ app.put("/edit", async (req, res) => {
 	res.json(d);
 });
 
+app.get("/stats", async (req, res) => {
+	const course_count = await Courses.countDocuments();
+	const student_count = await Courses.countDocuments();
+
+	const randomCourse = await Courses.aggregate([{ $sample: { size: 1 } }]);
+
+	res.send({
+		course_count,
+		student_count,
+	});
+});
+
 // // Upload profile picture
 // app.post("/upload", upload.single("profilePicture"), async (req, res) => {
 // 	try {
@@ -182,3 +203,94 @@ app.put("/edit", async (req, res) => {
 app.listen(port, () => {
 	console.log(`Server is running on http://localhost:${port}`);
 });
+
+// const raw_chapters = [
+// 	[
+// 		{
+// 			type: "index",
+// 			value: 1,
+// 		},
+// 		{
+// 			type: "section_title",
+// 			element_id: "4a3a3d8f-07c6-4664-8ced-e810260ca0a9",
+// 			index: 0,
+// 			value: "chapter title 2",
+// 		},
+// 		{
+// 			file_url:
+// 				"https://ingenral.com/media/blog_images/1703006561273_heart_image.webp",
+// 			asset_id: "65813eebfb96361bffdc017c",
+// 			asset_userame: "Jai Shankar",
+// 			asset_is_private: false,
+// 			type: "image",
+// 			element_id: "436c8ab6-23be-4bd5-b821-080ba84143ce",
+// 			index: 2,
+// 		},
+// 		{
+// 			file_url:
+// 				"https://ingenral.com/media/blog_images/1703006420371_heart_101.mp4",
+// 			asset_id: "658150046e92d8d3287d9ea9",
+// 			asset_is_private: false,
+// 			type: "video",
+// 			element_id: "f2655c97-a840-4280-a255-8b4225332640",
+// 			index: 3,
+// 		},
+// 	],
+// 	[
+// 		{
+// 			type: "index",
+// 			value: 2,
+// 		},
+// 		{
+// 			type: "section_title",
+// 			element_id: "a68be9f4-07a9-42e1-b5c7-d121e0cee8a2",
+// 			index: 0,
+// 			value: "chapter title 3",
+// 		},
+// 		{
+// 			file_url: "/realistic_human_heart.glb",
+// 			asset_id: "randomstrin1",
+// 			asset_userame: "Jai Shankar",
+// 			asset_is_private: false,
+// 			type: "model",
+// 			element_id: "f2a8564f-2a3b-491b-9c30-85840be9108e",
+// 			index: 2,
+// 		},
+// 	],
+// 	[
+// 		{
+// 			type: "index",
+// 			value: 0,
+// 		},
+// 		{
+// 			type: "section_title",
+// 			element_id: "2c9ec19e-d7a0-47c7-a50f-c8de750b1fa4",
+// 			index: 0,
+// 			value: "This is chapter title1",
+// 		},
+// 		{
+// 			type: "heading",
+// 			element_id: "bcce88b4-5dbe-46a1-9439-0078e577dbe0",
+// 			index: 2,
+// 			value: "This is heading",
+// 		},
+// 		{
+// 			type: "desc",
+// 			element_id: "09c5e21f-2ccf-4ba2-aa3a-26fd8ddc9895",
+// 			index: 3,
+// 			value:
+// 				"<p><strong>I am ready to go and this is a description</strong></p>\n",
+// 		},
+// 	],
+// ];
+
+// const newCourse = new Courses({
+// 	user_id: "65819fbcc1eba10b2fb4cb3c",
+// 	chapters: raw_chapters,
+// 	username: "Vishnatham Desai",
+// });
+// const u = await newCourse.save();
+
+// res.end();
+
+// return;

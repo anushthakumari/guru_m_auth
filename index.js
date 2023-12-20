@@ -38,6 +38,17 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// Define course schema
+const courseSchema = new mongoose.Schema({
+	user_id: mongoose.Types.ObjectId,
+	chapters: Array,
+	username: String,
+	title: String,
+	is_published: Boolean,
+});
+
+const Courses = mongoose.model("courses", courseSchema);
+
 app.use(cors());
 
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -150,34 +161,69 @@ app.put("/edit", async (req, res) => {
 	res.json(d);
 });
 
-// // Upload profile picture
-// app.post("/upload", upload.single("profilePicture"), async (req, res) => {
-// 	try {
-// 		const { username } = req.body;
+//courses
+app.post("/courses", async (req, res, next) => {
+	const { title, user_id, username } = req.body;
 
-// 		// Find the user by username
-// 		const user = await User.findOne({ username });
+	const newCourse = new Courses({
+		user_id,
+		username,
+		title,
+		chapters: [],
+	});
+	const u = await newCourse.save();
 
-// 		// Check if the user exists
-// 		if (!user) {
-// 			return res.status(404).json({ message: "User not found" });
-// 		}
+	res.send(u);
+});
 
-// 		// Convert the uploaded file to a data URL
-// 		const profilePicture = `data:image/png;base64,${req.file.buffer.toString(
-// 			"base64"
-// 		)}`;
+//get courses
+app.get("/courses", async (req, res, next) => {
+	const d = await Courses.find();
 
-// 		// Update the user's profile picture
-// 		user.profilePicture = profilePicture;
-// 		await user.save();
+	res.send(d);
+});
 
-// 		res.json({ message: "Profile picture uploaded successfully" });
-// 	} catch (error) {
-// 		console.error(error);
-// 		res.status(500).json({ message: "Internal Server Error" });
-// 	}
-// });
+//get published courses
+app.get("/courses", async (req, res, next) => {
+	const d = await Courses.find({ is_published: true });
+
+	res.send(d);
+});
+
+//course id
+app.get("/courses/:course_id", async (req, res, next) => {
+	const { course_id } = req.params;
+
+	const course = await Courses.findById(course_id);
+
+	res.send(course);
+});
+
+//edit course
+app.put("/courses/:course_id/save", async (req, res, next) => {
+	const { course_id } = req.params;
+	const { chapters } = req.body;
+
+	const course = await Courses.findByIdAndUpdate(course_id, {
+		chapters,
+	});
+
+	res.send(course);
+});
+
+app.put("/courses/:course_id/publish", async (req, res, next) => {
+	const { course_id } = req.params;
+	const { chapters, is_published } = req.body;
+
+	await Courses.findByIdAndUpdate(course_id, {
+		chapters,
+		is_published: Boolean(is_published),
+	});
+
+	const course = await Courses.findById(course_id);
+
+	res.send(course);
+});
 
 app.listen(port, () => {
 	console.log(`Server is running on http://localhost:${port}`);

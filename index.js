@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
+const email = require("./email");
 
 dotenv.config();
 
@@ -371,6 +372,11 @@ app.get("/leaderboard", async (req, res, next) => {
 	]);
 
 	res.send(usersOrdered);
+});
+
+app.get("/email", async (req, res, next) => {
+	await email();
+	res.send();
 });
 
 app.listen(port, () => {
